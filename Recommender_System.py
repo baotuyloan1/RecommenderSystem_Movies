@@ -3,7 +3,7 @@ tf.disable_v2_behavior()
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import json
 # Load the movies dataset and also pass header=None since files don't contain any headers
 movies_df = pd.read_csv('ml-1m/movies.dat', sep='::', header=None, engine='python',encoding='iso-8859-1')
 print(movies_df.head())
@@ -159,8 +159,7 @@ plt.plot(errors)
 plt.ylabel('Error')
 plt.xlabel('Epoch')
 
-plt.savefig('foo.png')
-plt.savefig('foo.pdf')
+
 plt.savefig('foo1.png', bbox_inches='tight')
 plt.show()
 
@@ -208,4 +207,46 @@ merged_df_50 = merged_df_50.drop('List Index_y', axis=1).drop('UserID', axis=1)
 # Sort and take a look at first 20 rows
 print(merged_df_50.sort_values(['Recommendation Score'], ascending=False).head(20))
 
+top_20 = merged_df_50.sort_values(['Recommendation Score'], ascending=False).head(20)
 """ There are some movies the user has not watched and has high score based on our model. So, we can recommend them. """
+class Rating():
+    def __init__(self, id, name, category, score, rating):
+        self.id = id
+        self.name = name
+        self.category = category
+        self.score = score
+        self.rating = rating
+
+    def to_dict(self):
+        return  {'id': self.id,
+                               'name': self.name,
+                               'category': self.category,
+                               'score':self.score,
+                               'rating':self.rating}
+
+recommenderMovies =[];
+for index in top_20.index:
+    id = int(top_20['MovieID'][index])
+    title = top_20['Title'][index]
+    category = top_20['Genres'][index]
+    score = str(top_20['Recommendation Score'][index])
+    rating = str(top_20['Rating'][index])
+    movie = Rating(id,title,category, score, rating)
+    recommenderMovies.append(movie)
+
+json_string = json.dumps([data.to_dict() for data in recommenderMovies])
+# json_string = object_schema.dumps(recommenderMovies, many=True)
+# results.sort(key=lambda obj: obj["rating"])
+
+# jsdata = Rating.toJSON({"results": results})
+with open('json_data.json', 'w') as outfile:
+    outfile.write(json_string)
+    print("Train Successfull")
+
+# print(trX)
+
+
+
+    
+""" There are some movies the user has not watched and has high score based on our model. So, we can recommend them. """
+
